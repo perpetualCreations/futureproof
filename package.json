@@ -20,7 +20,7 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "@hereticsibyl/svelte-dlxyz-base-dev": "^1.0.8",
+    "@hereticsibyl/svelte-dlxyz-base-dev": "^1.0.9",
     "@rollup/plugin-typescript": "^8.3.2",
     "@tauri-apps/api": "^1.0.0-rc.6",
     "rollup-plugin-copy": "^3.4.0",

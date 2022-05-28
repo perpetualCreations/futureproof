@@ -70,6 +70,9 @@
 	};
 
 	async function save() {
+		if (!ready) {
+			return;
+		}
 		writeFile({contents: JSON.stringify(state), path: stateFile});
 		writeFile({contents: await invoke("get_checksum"), path: checksumFile});
 	}
@@ -96,11 +99,7 @@
 		ready = true;
 		Object.freeze(ready);
 	});
-	$: state && (() => {
-		if (ready) {
-			save(); // save state if state changes.
-		}
-	})();
+	$: state && save(); // save state if state changes.
 </script>
 
 <main>

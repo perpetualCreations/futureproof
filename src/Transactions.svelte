@@ -92,6 +92,7 @@
     }
 </script>
 
+<p>One-time changes to your balance.</p>
 <main>
     <form>
         <input type="text" placeholder="Title..." bind:value={prototypeTransaction.title}>
@@ -122,7 +123,7 @@
             {#each state.transacts as transaction, index}
                 <div class="transaction-list-item">
                     <p class="transaction-list-item-header"><b>{transaction.title}</b></p>
-                    <p class="transaction-list-item-content">{state.settings.currencySymbol} {transaction.amount} | <button on:click={(() => {loadTransactionIntoPrototype(index)})}>🖋</button><button on:click={(() => {removeTransaction(index)})}>✘</button></p>
+                    <p class="transaction-list-item-content">({transaction.symbol}) {state.settings.currencySymbol} {transaction.amount} | <button on:click={(() => {loadTransactionIntoPrototype(index)})}>🖋</button><button on:click={(() => {removeTransaction(index)})}>✘</button></p>
                 </div>
             {/each}
         </div>
