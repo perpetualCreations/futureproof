@@ -61,7 +61,7 @@ body {
 	max-height: 100%;
 }
 
-p {
+p, a, label {
 	font-size: 0.8em;
 }
 
@@ -71,6 +71,7 @@ a, a:visited {
 
 label {
 	display: block;
+	user-select: none;
 }
 
 input, button, select, textarea {
@@ -79,6 +80,7 @@ input, button, select, textarea {
 	padding: 0.4em;
 	margin: 0 0 0.5em 0;
 	box-sizing: border-box;
+	border-radius: 0;
 }
 
 input:disabled {
@@ -100,7 +102,7 @@ input[type="radio"]:checked, input[type="checkbox"]:checked {
 	background-color: var(--fg1);
 }
 
-input[type="text"], input[type="datetime-local"], textarea {
+input[type="text"], input[type="datetime-local"], textarea, select, input[type="number"], button {
 	color: var(--fg);
 	background-color: var(--bg2);
 	font-size: 0.8em;
@@ -117,16 +119,6 @@ input[type="text"]:focus, input[type="datetime-local"]:focus, textarea:focus {
 
 textarea {
 	resize: vertical;
-}
-
-label {
-	user-select: none;
-}
-
-button {
-	color: var(--fg);
-	font-size: 0.8em;
-	border: none;
 }
 
 button:active {

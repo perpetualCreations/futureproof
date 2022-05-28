@@ -28,6 +28,7 @@
 	const currencySymbols = ["¤", "$", "£", "¥", "€"];
 	let stateFile;
 	let checksumFile;
+	let ready = false;
 	let selected;
 
 	let state = {
@@ -42,7 +43,26 @@
 				spare: []
 			}
 		},
-		transacts: [],
+		transacts: [
+			{
+				title: "test",
+				description: "reeeeeee",
+				amount: 69420,
+				symbol: "+"
+			},
+			{
+				title: "test 2",
+				description: "eeeeeeee",
+				amount: 42069,
+				symbol: "-"
+			},
+			{
+				title: "DOES CAPS LOOK OK",
+				description: "loreum ipsum-",
+				amount: 99999,
+				symbol: "+"
+			}
+		],
 		events: [],
 		settings: {
 			currencySymbol: "¤"
@@ -53,8 +73,6 @@
 		writeFile({contents: JSON.stringify(state), path: stateFile});
 		writeFile({contents: await invoke("get_checksum"), path: checksumFile});
 	}
-
-	$: state && save(); // save state if state changes.
 
 	onMount(async() => {
 		stateFile = await invoke("get_state_path");
@@ -75,27 +93,37 @@
 		}
 		Object.freeze(stateFile);
 		Object.freeze(checksumFile);
+		ready = true;
+		Object.freeze(ready);
 	});
+	$: state && (() => {
+		if (ready) {
+			save(); // save state if state changes.
+		}
+	})();
 </script>
 
 <main>
 	<div id="side-panel">
 		<SidePanel selections={selections} bind:selected={selected} panelHeightFactor=1 tipNoThings="-> //"/>
 	</div>
+	<div id="gap"></div>
 	<div id="working-container">
+		<p class="deco-page-star" style="border-top: none;">≺✧≻</p>
 		<div id="working">
-			<p class="deco-page-star" style="margin-top: 3em;">≺✧≻</p>
 			{#if selected == "stats"}
 				<Statistics bind:state={state}/>
 			{:else if selected == "transacts"}
-				<Transactions/>
+				<Transactions bind:state={state}/>
 			{:else if selected == "events"}
 				<Events/>
 			{:else}
-				<p style="text-align: center;">Nothing selected.</p>
+				<div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+					<p style="text-align: center;">Nothing selected.</p>
+				</div>
 			{/if}
-			<p class="deco-page-star" style="margin-bottom: 3em;">≺✧≻</p>
 		</div>
+		<p class="deco-page-star" style="border-bottom: none;">≺✧≻</p>
 	</div>
 </main>
 
@@ -108,22 +136,25 @@
 		flex: 30%;
 	}
 
+	#gap {
+		flex: 1%;
+		width: 100%;
+	}
+
 	#working-container {
-		flex: 70%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+		flex: 69%;
 		overflow-y: hidden;
+		height: 100vh;
 	}
 
 	#working {
-		border: 0.1em solid var(--fg1);
-        padding-left: 5%;
-        padding-right: 5%;
-		max-height: 80vh;
+		height: auto;
 	}
 
-	#working .deco-page-star {
+	.deco-page-star {
 		text-align: center;
+		border: 0.1em solid var(--fg1);
+		border-left: none;
+		border-right: none;
 	}
 </style>
