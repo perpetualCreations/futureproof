@@ -1,0 +1,172 @@
+@font-face {
+	font-family: "Fira Code";
+	src: url("FiraCode-VariableFont_wght.ttf");
+}
+
+:root {
+	--fg: #ebdbb2;
+	--fg1: var(--fg);
+	--fg2: #d5c4a1;
+	--fg3: #bdae93;
+	--fg4: #a89984;
+	--bg: #282828;
+	--bg0: var(--bg);
+	--bg0_h: #1d2021;
+	--bg1: #3c3836;
+	--bg2: #504945;
+	--bg3: #665c54;
+	--bg4: #7c6f64;
+	--blue0: #83a598;
+	--link: var(--blue0);
+	--red1: #cc241d;
+	--red0: #fb4934;
+	--orange0: #fe8019;
+	--yellow0: #fabd2f;
+	--purple0: #d3869b;
+	--aqua0: #8ec07c;
+	--green0: #b8bb26;
+	--gray1: #928374;
+	accent-color: var(--fg1);
+}
+
+::-webkit-scrollbar {
+    background-color: var(--bg0_h);
+    width: 0.5em;
+    height: 0.5em;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--bg2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--bg3);
+}
+
+::-webkit-scrollbar-corner {
+	background-color: var(--bg)
+}
+
+::placeholder {
+	color: var(--fg4);
+	font-size: 0.75em;
+}
+
+body {
+	background-color: var(--bg);
+	color: var(--fg);
+	margin: 0;
+	box-sizing: border-box;
+	font-family: "Fira Code";
+	max-height: 100%;
+}
+
+p {
+	font-size: 0.8em;
+}
+
+a, a:visited {
+	color: var(--link);
+}
+
+label {
+	display: block;
+}
+
+input, button, select, textarea {
+	font-family: inherit;
+	font-size: inherit;
+	padding: 0.4em;
+	margin: 0 0 0.5em 0;
+	box-sizing: border-box;
+}
+
+input:disabled {
+	color: var(--fg1);
+}
+
+input[type="radio"], input[type="checkbox"] {
+	margin: 0;
+	appearance: none;
+	color: currentColor;
+	width: 1em;
+	height: 1em;
+	border: 0.1em solid currentColor;
+	transform: translateY(0.1em);
+	transition: background-color 0.1s ease-in-out;
+}
+
+input[type="radio"]:checked, input[type="checkbox"]:checked {
+	background-color: var(--fg1);
+}
+
+input[type="text"], input[type="datetime-local"], textarea {
+	color: var(--fg);
+	background-color: var(--bg2);
+	font-size: 0.8em;
+	border: none;
+}
+
+input[type="text"], input[type="datetime-local"] {
+	height: 1.5em;
+}
+
+input[type="text"]:focus, input[type="datetime-local"]:focus, textarea:focus {
+	outline: none;
+}
+
+textarea {
+	resize: vertical;
+}
+
+label {
+	user-select: none;
+}
+
+button {
+	color: var(--fg);
+	font-size: 0.8em;
+	border: none;
+}
+
+button:active {
+	color: var(--fg2);
+}
+
+hr {
+	border-color: var(--fg1);
+}
+
+.suppress-transitions {
+	transition: none !important;
+}
+
+.hover-pad-sides {
+	transition: margin 0.2s;
+}
+
+.hover-pad-sides:hover {
+	margin-left: 1em;
+	margin-right: 1em;
+}
+
+.hover-pad-sides:active {
+	margin-left: 1.2em;
+	margin-right: 1.2em;
+}
+
+.section {
+	border: 0.1em solid var(--fg1);
+	border-left: none;
+	border-right: none;
+	padding: 1em;
+	margin: 0.5em;
+}
+
+.centered-pedestal {
+	margin: 1em;
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	user-select: none;
+}
