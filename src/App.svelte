@@ -6,6 +6,7 @@
 	import Statistics from "./Statistics.svelte";
 	import Transactions from "./Transactions.svelte";
 	import Events from "./Events.svelte";
+	import Settings from "./Settings.svelte";
 
 	const selections = [
 		{
@@ -25,7 +26,6 @@
 			label: "[3] Settings"
 		}
 	];
-	const currencySymbols = ["¤", "$", "£", "¥", "€"];
 	let stateFile;
 	let checksumFile;
 	let ready = false;
@@ -115,7 +115,9 @@
 			{:else if selected == "transacts"}
 				<Transactions bind:state={state}/>
 			{:else if selected == "events"}
-				<Events/>
+				<Events bind:state={state}/>
+			{:else if selected == "settings"}
+				<Settings bind:settings={state.settings}/>
 			{:else}
 				<div style="display: flex; justify-content: center; align-items: center; height: 100%;">
 					<p style="text-align: center;">Nothing selected.</p>
