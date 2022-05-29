@@ -6,13 +6,9 @@ Desktop budgeting application that instills existential dread into every living 
   - Countdown timer until bankruptcy.
   - Graphing.
   - Balance change rate display and calculation.
-2. Transctions System
+2. Events System
   - Array log.
-  - Editor.
-3. Events System
-  - Array log.
-  - Editor.
   - Cron invocations.
   - Cron invocations while application isn't running.
-4. Settings System
-  - Enumeration for each option.
+3. Saving
+  - I thought this was done, but it needs fixing.

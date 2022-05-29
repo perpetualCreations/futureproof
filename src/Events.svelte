@@ -4,13 +4,10 @@
     export let state = {
 		stats: {
 			balance: 0,
-            negative: 0,
-            positive: 0,
 			history: {
 				balance: [],
-				positive: [],
-				negative: [],
-				spare: []
+				spare: [],
+                events: []
 			}
 		},
 		transacts: [],
@@ -41,12 +38,12 @@
     resetPrototype();
 
     const loadEventIntoPrototype = (index) => {
-        Object.keys(state.transacts[index]).forEach((key) => {
+        Object.keys(state.events[index]).forEach((key) => {
             console.log(key);
-            prototypeEvent[key] = state.transacts[index][key];
+            prototypeEvent[key] = state.events[index][key];
             console.log(prototypeEvent);
         });
-        prototypeEvent.amountDirty = String(state.transacts[index].amount);
+        prototypeEvent.amountDirty = String(state.events[index].amount);
     }
 
     const evaluateEvent = (amount, symbol) => {
@@ -64,16 +61,16 @@
     }
 
     const removeEvent = (index) => {
-        evaluateEvent(state.transacts[index].amount, symbolReversalLookup[state.transacts[index].symbol]);
-        state.transacts.splice(index, 1);
-        state.transacts = state.transacts;
+        evaluateEvent(state.events[index].amount, symbolReversalLookup[state.events[index].symbol]);
+        state.events.splice(index, 1);
+        state.events = state.events;
     }
 
     const savePrototype = () => {
         let prototype = {...prototypeEvent};
         let index = -1;
         try {
-            state.transacts.forEach((event, eventIndex) => {
+            state.events.forEach((event, eventIndex) => {
                 if (event.title == prototype.title) {
                     index = eventIndex;
                     throw "break";
@@ -83,14 +80,14 @@
         catch {}
         if (index == -1) {
             evaluateEvent(prototype.amount, prototype.symbol);
-            state.transacts.unshift(prototype);
+            state.events.unshift(prototype);
         }
         else {
-            evaluateEvent(state.transacts[index].amount, symbolReversalLookup[state.transacts[index].symbol]);
+            evaluateEvent(state.events[index].amount, symbolReversalLookup[state.events[index].symbol]);
             evaluateEvent(prototype.amount, prototype.symbol);
-            state.transacts[index] = prototype;
+            state.events[index] = prototype;
         }
-        state.transacts = state.transacts;
+        state.events = state.events;
     }
 </script>
 
@@ -120,10 +117,10 @@
             <p><b>|| Events</b></p>
         </div>
         <div id="event-list-content">
-            {#if (state.transacts.length == 0)}
+            {#if (state.events.length == 0)}
                 <p style="text-align: center;">No events.</p>
             {/if}
-            {#each state.transacts as event, index}
+            {#each state.events as event, index}
                 <div class="event-list-item">
                     <p class="event-list-item-header"><b>{event.title}</b></p>
                     <p class="event-list-item-content">{state.settings.currencySymbol} {event.amount} | <button on:click={(() => {loadEventIntoPrototype(index)})}>🖋</button><button on:click={(() => {removeEvent(index)})}>✘</button></p>

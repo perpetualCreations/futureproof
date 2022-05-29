@@ -34,13 +34,10 @@
 	let state = {
 		stats: {
 			balance: 0,
-            negative: 0,
-            positive: 0,
 			history: {
 				balance: [],
-				positive: [],
-				negative: [],
-				spare: []
+				spare: [],
+                events: []
 			}
 		},
 		transacts: [
