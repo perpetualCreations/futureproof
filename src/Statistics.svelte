@@ -5,7 +5,7 @@
 			history: {
 				balance: [],
 				spare: [],
-                events: []javascript calculate time until date
+                events: []
 			}
 		},
 		transacts: [],
