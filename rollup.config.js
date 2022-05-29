@@ -45,6 +45,10 @@ export default {
 				{
 					src: "./node_modules/@hereticsibyl/svelte-dlxyz-base-dev/dist/global.css",
 					dest: "./public/"
+				},
+				{
+					src: "./node_modules/luxon",
+					dest: "./public/calciumdep/"
 				}
 			]
 		}),

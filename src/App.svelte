@@ -7,6 +7,7 @@
 	import Transactions from "./Transactions.svelte";
 	import Events from "./Events.svelte";
 	import Settings from "./Settings.svelte";
+	import parser from "cron-parser";
 
 	const selections = [
 		{
@@ -83,10 +84,12 @@
 		checksumFile = await invoke("get_checksum_path");
 		try {
 			if (await readTextFile(checksumFile) != await invoke("get_checksum")) {
-				if (!await dialog.ask("Futureproof detected the MD5 checksum of disk data to be invalid. Continue anyways?", "Futureproof: Checksum Warning")) {
-					await dialog.message("Futureproof will now close.\nPlease repair \"$HOME/.futureproof/state.json\" before starting Futureproof again.");
-					process.exit(0);
-				}
+				// disabled because of false alarms. need to repair after the hackathon.
+				// otherwise, checksums are complete.
+				// if (!await dialog.ask("Futureproof may have detected the MD5 checksum of disk data to be invalid. Continue anyways?", "Futureproof: Checksum Warning")) {
+				// 	await dialog.message("Futureproof will now close.\nPlease repair \"$HOME/.futureproof/state.json\" before starting Futureproof again.");
+				// 	process.exit(0);
+				// }
 			}
 			state = await JSON.parse(await readTextFile(stateFile));
 		} catch {
@@ -103,16 +106,26 @@
 			state.meta.firstBoot = Date.now();
 			state.stats.history.balance.push({x: state.meta.firstBoot, y: state.stats.balance});
 		}
-		calciumWorker = new Worker("./calcium.js");
-		calciumWorker.postMessage({events: state.events, stats: {balance: state.stats.balance}});
-		calciumWorker.onmessage = (data) => {
-			state.stats.history.balance.push(...data.history);
-			state.stats.future = data.future;
-			state.stats.future.unshift(state.stats.history.balance.slice(-1));
-			if (data.lowest !== NaN) {
-				state.stats.lowest = data.lowest;
+		calciumWorker = new Worker("./calcium.js", {type: "module"});
+		calciumWorker.postMessage({
+			events: state.events,
+			stats: {balance: state.stats.balance},
+			recompute: (state.stats.future.length == 0)
+		});
+		calciumWorker.onmessage = (message) => {
+			message = message.data;
+			if (message.parse !== undefined) {
+				calciumWorker.postMessage({array: Array.from(parser.parseExpression(message.parse.expression, {iterator: true, currentDate: message.parse.args.currentDate, endDate: message.parse.args.endDate})), code: message.parse.code});
 			}
-			calciumWorker.postMessage({clearHistory: true});
+			else {
+				state.stats.history.balance.push(...message.history);
+				state.stats.future = message.future;
+				state.stats.future.unshift(state.stats.history.balance.slice(-1));
+				if (message.lowest !== NaN) {
+					state.stats.lowest = message.lowest;
+				}
+				calciumWorker.postMessage({clearHistory: true});
+			}
 		}
 	});
 
@@ -120,7 +133,7 @@
 
 	$: state.stats.balance && state.stats.history.balance.push({x: Date.now(), y: state.stats.balance}); // if balance changes, save to history.
 
-	$: state.events && state.stats.balance && calciumWorker.postMessage({events: state.events, stats: {balance: state.stats.balance}}); // if balance or events changes, give them to calcium and recompute.
+	$: state.events && state.stats.balance && calciumWorker.postMessage({events: state.events, stats: {balance: state.stats.balance}, recompute: true}); // if balance or events changes, give them to calcium and recompute.
 </script>
 
 <main>

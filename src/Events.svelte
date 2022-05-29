@@ -48,22 +48,7 @@
         prototypeEvent.amountDirty = String(state.events[index].amount);
     }
 
-    const evaluateEvent = (amount, symbol) => {
-        if (symbol == "+") {
-            state.stats.balance += amount;
-        }
-        else if (symbol == "-") {
-            state.stats.balance -= amount;
-        }
-    }
-
-    const symbolReversalLookup = {
-        "-": "+",
-        "+": "-"
-    }
-
     const removeEvent = (index) => {
-        evaluateEvent(state.events[index].amount, symbolReversalLookup[state.events[index].symbol]);
         state.events.splice(index, 1);
         state.events = state.events;
     }
@@ -81,12 +66,9 @@
         }
         catch {}
         if (index == -1) {
-            evaluateEvent(prototype.amount, prototype.symbol);
             state.events.unshift(prototype);
         }
         else {
-            evaluateEvent(state.events[index].amount, symbolReversalLookup[state.events[index].symbol]);
-            evaluateEvent(prototype.amount, prototype.symbol);
             state.events[index] = prototype;
         }
         state.events = state.events;

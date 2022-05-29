@@ -44,7 +44,9 @@ fn get_checksum() -> String {
   println!("get_checksum was invoked.");
   let target = get_state_path();
   if fs::metadata(&target).is_ok() {
-    return format!("{:x}", md5::compute(fs::read(target).expect("Unable to read data on disk for MD5 checksum calculation.")));
+    let hash = format!("{:x}", md5::compute(fs::read(target).expect("Unable to read data on disk for MD5 checksum calculation.")));
+    println!("state.json checksum is {}.", hash);
+    return hash;
   }
   String::from("") // default.
 }
