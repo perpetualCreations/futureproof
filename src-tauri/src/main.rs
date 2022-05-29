@@ -11,6 +11,7 @@ use md5;
 fn main() {
   make_data_dir();
   tauri::Builder::default()
+    .invoke_handler(tauri::generate_handler![get_state_path, get_checksum_path, get_checksum])
     .run(tauri::generate_context!())
     .expect("Application failed to launch.");
 }
@@ -22,8 +23,8 @@ fn get_data_dir() -> PathBuf {
 }
 
 #[tauri::command]
-#[allow(dead_code)]
 fn get_state_path() -> String {
+  println!("get_state_path was invoked.");
   let mut home = get_data_dir();
   home.push("state");
   home.set_extension("json");
@@ -31,21 +32,21 @@ fn get_state_path() -> String {
 }
 
 #[tauri::command]
-#[allow(dead_code)]
 fn get_checksum_path() -> String {
+  println!("get_checksum_path was invoked.");
   let mut home = get_data_dir();
   home.push("checksum");
   home.into_os_string().into_string().unwrap_or(String::from("$HOME/.futureproof/checksum"))
 }
 
 #[tauri::command]
-#[allow(dead_code)]
 fn get_checksum() -> String {
+  println!("get_checksum was invoked.");
   let target = get_state_path();
   if fs::metadata(&target).is_ok() {
     return format!("{:x}", md5::compute(fs::read(target).expect("Unable to read data on disk for MD5 checksum calculation.")));
   }
-  String::from("")
+  String::from("") // default.
 }
 
 fn make_data_dir() {

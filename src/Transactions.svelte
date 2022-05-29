@@ -6,15 +6,18 @@
 			balance: 0,
 			history: {
 				balance: [],
-				spare: [],
-                events: []
-			}
+			},
+            future: [],
+			lowest: 0
 		},
 		transacts: [],
 		events: [],
 		settings: {
 			currencySymbol: "¤"
-		}
+		},
+        meta: {
+            firstBoot: -1
+        }
 	};
     let prototypeTransaction = {
         title: "",
@@ -33,13 +36,10 @@
             symbol: "+"
         }
     }
-    resetPrototype();
 
     const loadTransactionIntoPrototype = (index) => {
         Object.keys(state.transacts[index]).forEach((key) => {
-            console.log(key);
             prototypeTransaction[key] = state.transacts[index][key];
-            console.log(prototypeTransaction);
         });
         prototypeTransaction.amountDirty = String(state.transacts[index].amount);
     }

@@ -26,8 +26,8 @@
 			label: "[3] Settings"
 		}
 	];
-	let stateFile;
-	let checksumFile;
+	var stateFile;
+	var checksumFile;
 	let ready = false;
 	let selected;
 
@@ -36,35 +36,39 @@
 			balance: 0,
 			history: {
 				balance: [],
-				spare: [],
-                events: []
-			}
+			},
+            future: [],
+			lowest: 0
 		},
 		transacts: [
+			/*
 			{
-				title: "test",
-				description: "reeeeeee",
-				amount: 69420,
-				symbol: "+"
-			},
-			{
-				title: "test 2",
-				description: "eeeeeeee",
-				amount: 42069,
+				title: "Alcoholism",
+				description: "I had to feed my alcoholism. Sorry.",
+				amount: 20,
 				symbol: "-"
-			},
-			{
-				title: "DOES CAPS LOOK OK",
-				description: "loreum ipsum-",
-				amount: 99999,
-				symbol: "+"
 			}
+			*/
 		],
-		events: [],
+		events: [
+			/*
+			{
+				title: "Payday",
+				description: "I get paid every minute, don't ask. The boss is weird.",
+				amount: 10,
+				symbol: "+",
+				cron: "* * * * * *"
+			}
+			*/
+		],
 		settings: {
-			currencySymbol: "¤"
+			currencySymbol: "¤",
+		},
+		meta: {
+			firstBoot: -1
 		}
 	};
+	let calciumWorker;
 
 	async function save() {
 		if (!ready) {
@@ -95,8 +99,28 @@
 		Object.freeze(checksumFile);
 		ready = true;
 		Object.freeze(ready);
+		if (state.meta.firstBoot == -1) {
+			state.meta.firstBoot = Date.now();
+			state.stats.history.balance.push({x: state.meta.firstBoot, y: state.stats.balance});
+		}
+		calciumWorker = new Worker("./calcium.js");
+		calciumWorker.postMessage({events: state.events, stats: {balance: state.stats.balance}});
+		calciumWorker.onmessage = (data) => {
+			state.stats.history.balance.push(...data.history);
+			state.stats.future = data.future;
+			state.stats.future.unshift(state.stats.history.balance.slice(-1));
+			if (data.lowest !== NaN) {
+				state.stats.lowest = data.lowest;
+			}
+			calciumWorker.postMessage({clearHistory: true});
+		}
 	});
+
 	$: state && save(); // save state if state changes.
+
+	$: state.stats.balance && state.stats.history.balance.push({x: Date.now(), y: state.stats.balance}); // if balance changes, save to history.
+
+	$: state.events && state.stats.balance && calciumWorker.postMessage({events: state.events, stats: {balance: state.stats.balance}}); // if balance or events changes, give them to calcium and recompute.
 </script>
 
 <main>

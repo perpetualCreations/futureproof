@@ -6,15 +6,18 @@
 			balance: 0,
 			history: {
 				balance: [],
-				spare: [],
-                events: []
-			}
+			},
+            future: [],
+			lowest: 0
 		},
 		transacts: [],
 		events: [],
 		settings: {
 			currencySymbol: "¤"
-		}
+		},
+        meta: {
+            firstBoot: -1
+        }
 	};
     let prototypeEvent = {
         title: "",
@@ -35,7 +38,6 @@
             cron: ""
         }
     }
-    resetPrototype();
 
     const loadEventIntoPrototype = (index) => {
         Object.keys(state.events[index]).forEach((key) => {
@@ -98,6 +100,9 @@
         <textarea rows="15" placeholder="Description..." bind:value={prototypeEvent.description}></textarea>
         <input type="text" inputmode="decimal" placeholder="0.00" bind:value={prototypeEvent.amountDirty} on:change={(() => {
             try {
+                if (Number(prototypeEvent.amountDirty) === NaN) {
+                    throw "NaN is bad. We don't want NaN.";
+                }
                 prototypeEvent.amount = Number(prototypeEvent.amountDirty);
             } catch {
                 prototypeEvent.amount = 0;
@@ -109,7 +114,7 @@
         <label>
             <input type="radio" bind:group={prototypeEvent.symbol} value="-"> Spending
         </label>
-        <CronEditor bind:value={prototypeEvent.cron}/>
+        <CronEditor bind:cron={prototypeEvent.cron}/>
     </form>
     <div id="spacer"></div>
     <div id="event-list">
@@ -123,7 +128,7 @@
             {#each state.events as event, index}
                 <div class="event-list-item">
                     <p class="event-list-item-header"><b>{event.title}</b></p>
-                    <p class="event-list-item-content">{state.settings.currencySymbol} {event.amount} | <button on:click={(() => {loadEventIntoPrototype(index)})}>🖋</button><button on:click={(() => {removeEvent(index)})}>✘</button></p>
+                    <p class="event-list-item-content">({event.symbol}) {state.settings.currencySymbol} {event.amount} | <button on:click={(() => {loadEventIntoPrototype(index)})}>🖋</button><button on:click={(() => {removeEvent(index)})}>✘</button></p>
                 </div>
             {/each}
         </div>
