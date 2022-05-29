@@ -8,7 +8,7 @@
 				balance: [],
 			},
             future: [],
-			lowest: 0
+			lowest: -1
 		},
 		transacts: [],
 		events: [],

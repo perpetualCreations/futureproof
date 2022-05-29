@@ -10,7 +10,7 @@
 				balance: [],
 			},
             future: [],
-			lowest: 0
+			lowest: -1
 		},
 		transacts: [],
 		events: [],
@@ -39,7 +39,7 @@
 						label: "Balance (now-future)",
 						borderColor: ["rgba(250, 189, 47, 1)"],
 						backgroundColor: ["rgba(215, 153, 33, 1)"],
-						data: state.stats.future
+						data: [...state.stats.future, ...state.stats.history.balance.slice(-1)]
 					}
 				]
 			},

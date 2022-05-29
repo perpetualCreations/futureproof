@@ -8,6 +8,7 @@
 	import Events from "./Events.svelte";
 	import Settings from "./Settings.svelte";
 	import parser from "cron-parser";
+	import {DateTime, Duration} from "luxon";
 
 	const selections = [
 		{
@@ -39,7 +40,7 @@
 				balance: [],
 			},
             future: [],
-			lowest: 0
+			lowest: -1
 		},
 		transacts: [
 			/*
@@ -58,7 +59,7 @@
 				description: "I get paid every minute, don't ask. The boss is weird.",
 				amount: 10,
 				symbol: "+",
-				cron: "* * * * * *"
+				cron: "* * * * *"
 			}
 			*/
 		],
@@ -69,7 +70,11 @@
 			firstBoot: -1
 		}
 	};
-	let calciumWorker;
+	let clockState = {
+		workingBalance: NaN,
+		farthest: 0
+	};
+	let clockWorker;
 
 	async function save() {
 		if (!ready) {
@@ -77,6 +82,14 @@
 		}
 		writeFile({contents: JSON.stringify(state), path: stateFile});
 		writeFile({contents: await invoke("get_checksum"), path: checksumFile});
+	}
+
+	function getArrayOfFuture(expression, callback) {
+		let worker = new Worker("./unwrapfuture.js");
+		worker.onmessage = (message) => {
+			callback(message.data);
+		}
+		worker.postMessage(expression);
 	}
 
 	onMount(async() => {
@@ -106,25 +119,53 @@
 			state.meta.firstBoot = Date.now();
 			state.stats.history.balance.push({x: state.meta.firstBoot, y: state.stats.balance});
 		}
-		calciumWorker = new Worker("./calcium.js", {type: "module"});
-		calciumWorker.postMessage({
-			events: state.events,
-			stats: {balance: state.stats.balance},
-			recompute: (state.stats.future.length == 0)
-		});
-		calciumWorker.onmessage = (message) => {
-			message = message.data;
-			if (message.parse !== undefined) {
-				calciumWorker.postMessage({array: Array.from(parser.parseExpression(message.parse.expression, {iterator: true, currentDate: message.parse.args.currentDate, endDate: message.parse.args.endDate})), code: message.parse.code});
+		clockWorker = new Worker("./clock.js");
+		clockWorker.onmessage = (_) => {
+			if (clockState.workingBalance == NaN) {
+				clockState.workingBalance = state.stats.balance;
 			}
-			else {
-				state.stats.history.balance.push(...message.history);
-				state.stats.future = message.future;
-				state.stats.future.unshift(state.stats.history.balance.slice(-1));
-				if (message.lowest !== NaN) {
-					state.stats.lowest = message.lowest;
+			state.stats.future.forEach((data) => {
+				if (data.x <= Date.now()) {
+					state.stats.history.balance.push(data);
 				}
-				calciumWorker.postMessage({clearHistory: true});
+			});
+			state.stats.history.balance.forEach((data) => {
+				if (state.stats.future.indexOf(data) !== -1) {
+					state.stats.future.splice(state.stats.future.indexOf(data), 1);
+				}
+			});
+			if (Date.now() > clockState.farthest) { // compute new futures only if farthest is in the past.
+				let prototypeFuture = {};
+				// we don't clear vars like we're doing recomputation.
+				state.events.forEach((event) => {
+					getArrayOfFuture(parser.parseExpression(event.cron, { // parse cron for event.
+						// this time we do this slightly differently, 1 minute window from 1 year from now.
+						currentDate: new Date(DateTime.fromMillis(clockState.farthest)),
+						endDate: new Date(DateTime.now().plus(Duration.fromObject({years: 1}))),
+						iterator: true
+					}), (data) => {
+						data.forEach((date) => { // iterate over each future time. array convert inefficient.
+							// we push everything to prototypeFuture so we can sort and apply each change sequentially, logging as we go.
+							prototypeFuture[(DateTime.fromJSDate(date).toUnixInteger() * 1000)] = {
+								amount: event.amount,
+								symbol: event.symbol
+							};
+						});
+					});
+				});
+				Object.keys(prototypeFuture).sort((a, b) => {return a - b;}).forEach((unixTimeAsKey) => {
+					clockState.workingBalance = ((prototypeFuture[unixTimeAsKey].symbol == "+") ? (clockState.workingBalance + prototypeFuture[unixTimeAsKey].amount) : (clockState.workingBalance - prototypeFuture[unixTimeAsKey].amount));
+					if (state.stats.lowest === NaN || state.stats.lowest > clockState.workingBalance) {
+						state.stats.lowest = clockState.workingBalance;
+					}
+					if (clockState.farthest == -1 || clockState.farthest < unixTimeAsKey) {
+						clockState.farthest = unixTimeAsKey;
+					}
+					state.stats.future = [...state.stats.future, {
+						x: unixTimeAsKey,
+						y: clockState.workingBalance
+					}];
+				});
 			}
 		}
 	});
@@ -133,7 +174,42 @@
 
 	$: state.stats.balance && state.stats.history.balance.push({x: Date.now(), y: state.stats.balance}); // if balance changes, save to history.
 
-	$: state.events && state.stats.balance && calciumWorker.postMessage({events: state.events, stats: {balance: state.stats.balance}, recompute: true}); // if balance or events changes, give them to calcium and recompute.
+	$: state.events && state.stats.balance && (() => { // rerun computation completely if events or balance change.
+		console.log("invocation for future generation.")
+		state.stats.future = []; // if yes clear and recompute of future.
+        state.stats.lowest = -1;
+        clockState.farthest = 0;
+        let prototypeFuture = {};
+        clockState.workingBalance = state.stats.balance;
+		state.events.forEach((event) => {
+			getArrayOfFuture(parser.parseExpression(event.cron, { // parse cron for event.
+				currentDate: new Date(DateTime.now().toISO()),
+				endDate: new Date(DateTime.now().plus(Duration.fromObject({years: 1}))),
+				iterator: true
+			}), (data) => {
+				data.forEach((date) => { // iterate over each future time. array convert inefficient.
+					// we push everything to prototypeFuture so we can sort and apply each change sequentially, logging as we go.
+					prototypeFuture[(DateTime.fromJSDate(date).toUnixInteger() * 1000)] = {
+						amount: event.amount,
+						symbol: event.symbol
+					};
+				});
+			})
+		});
+        Object.keys(prototypeFuture).sort((a, b) => {return a - b;}).forEach((unixTimeAsKey) => {
+            clockState.workingBalance = ((prototypeFuture[unixTimeAsKey].symbol == "+") ? (clockState.workingBalance + prototypeFuture[unixTimeAsKey].amount) : (clockState.workingBalance - prototypeFuture[unixTimeAsKey].amount));
+            if (state.stats.lowest === NaN || state.stats.lowest > clockState.workingBalance) {
+                state.stats.lowest = clockState.workingBalance;
+            }
+            if (clockState.farthest == -1 || clockState.farthest < unixTimeAsKey) {
+                farthest = unixTimeAsKey;
+            }
+			state.stats.future = [...state.stats.future, {
+				x: unixTimeAsKey,
+				y: clockState.workingBalance
+			}];
+        });
+	})();
 </script>
 
 <main>
